@@ -1,0 +1,214 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.ArrayList;
+
+// Task Class
+class Task {
+    int id;
+    String title;
+    String status;
+
+    public Task(int id, String title) {
+        this.id = id;
+        this.title = title;
+        this.status = "To Do";
+    }
+
+    public String toString() {
+        return id + " - " + title + " [" + status + "]";
+    }
+}
+
+// Sprint Class
+class Sprint {
+    int id;
+    ArrayList<Task> tasks;
+
+    public Sprint(int id) {
+        this.id = id;
+        tasks = new ArrayList<>();
+    }
+
+    public void addTask(Task t) {
+        tasks.add(t);
+    }
+
+    public String toString() {
+        return "Sprint " + id;
+    }
+}
+
+// Main GUI Class
+public class AgileManagerGUI {
+
+    static int taskId = 1;
+    static int sprintId = 1;
+
+    static ArrayList<Task> backlog = new ArrayList<>();
+    static ArrayList<Sprint> sprints = new ArrayList<>();
+
+    public static void main(String[] args) {
+
+        JFrame frame = new JFrame("Agile Task Manager");
+        frame.setSize(650, 500);
+        frame.setLayout(new FlowLayout());
+
+        JTextArea display = new JTextArea(20, 55);
+        display.setEditable(false);
+
+        JScrollPane scroll = new JScrollPane(display);
+
+        JButton addTaskBtn = new JButton("Add Task");
+        JButton createSprintBtn = new JButton("Create Sprint");
+        JButton assignTaskBtn = new JButton("Assign Task to Sprint");
+        JButton updateStatusBtn = new JButton("Update Task Status");
+        JButton viewBtn = new JButton("View All Data");
+
+        // ADD TASK
+        addTaskBtn.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String title = JOptionPane.showInputDialog("Enter Task Title:");
+
+                if (title != null && !title.trim().isEmpty()) {
+                    Task t = new Task(taskId++, title);
+                    backlog.add(t);
+                    display.setText("Task added to backlog!\n");
+                }
+            }
+        });
+
+        // CREATE SPRINT
+        createSprintBtn.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                Sprint s = new Sprint(sprintId++);
+                sprints.add(s);
+                display.setText("Sprint created successfully!\n");
+            }
+        });
+
+        // ASSIGN TASK
+        assignTaskBtn.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    String tIdStr = JOptionPane.showInputDialog("Enter Task ID:");
+                    String sIdStr = JOptionPane.showInputDialog("Enter Sprint ID:");
+
+                    int tId = Integer.parseInt(tIdStr);
+                    int sId = Integer.parseInt(sIdStr);
+
+                    Task selectedTask = null;
+
+                    for (Task t : backlog) {
+                        if (t.id == tId) {
+                            selectedTask = t;
+                            break;
+                        }
+                    }
+
+                    if (selectedTask == null) {
+                        display.setText("Task not found!\n");
+                        return;
+                    }
+
+                    for (Sprint s : sprints) {
+                        if (s.id == sId) {
+                            s.addTask(selectedTask);
+                            display.setText("Task assigned to Sprint!\n");
+                            return;
+                        }
+                    }
+
+                    display.setText("Sprint not found!\n");
+
+                } catch (Exception ex) {
+                    display.setText("Invalid Input!\n");
+                }
+            }
+        });
+
+        // UPDATE STATUS
+        updateStatusBtn.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    String tIdStr = JOptionPane.showInputDialog("Enter Task ID:");
+                    int tId = Integer.parseInt(tIdStr);
+
+                    Task found = null;
+
+                    for (Task t : backlog) {
+                        if (t.id == tId) {
+                            found = t;
+                            break;
+                        }
+                    }
+
+                    if (found == null) {
+                        display.setText("Task not found!\n");
+                        return;
+                    }
+
+                    String[] options = {"To Do", "In Progress", "Done"};
+
+                    String status = (String) JOptionPane.showInputDialog(
+                            null,
+                            "Select Status:",
+                            "Update Status",
+                            JOptionPane.QUESTION_MESSAGE,
+                            null,
+                            options,
+                            options[0]
+                    );
+
+                    if (status != null) {
+                        found.status = status;
+                        display.setText("Status updated successfully!\n");
+                    }
+
+                } catch (Exception ex) {
+                    display.setText("Invalid Input!\n");
+                }
+            }
+        });
+
+        // VIEW DATA
+        viewBtn.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+
+                StringBuilder sb = new StringBuilder();
+
+                sb.append("=== BACKLOG TASKS ===\n");
+                for (Task t : backlog) {
+                    sb.append(t).append("\n");
+                }
+
+                sb.append("\n=== SPRINTS ===\n");
+
+                for (Sprint s : sprints) {
+                    sb.append(s).append("\n");
+
+                    if (s.tasks.isEmpty()) {
+                        sb.append("   No tasks assigned\n");
+                    } else {
+                        for (Task t : s.tasks) {
+                            sb.append("   ").append(t).append("\n");
+                        }
+                    }
+                }
+
+                display.setText(sb.toString());
+            }
+        });
+
+        // ADD COMPONENTS
+        frame.add(addTaskBtn);
+        frame.add(createSprintBtn);
+        frame.add(assignTaskBtn);
+        frame.add(updateStatusBtn);
+        frame.add(viewBtn);
+        frame.add(scroll);
+
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setVisible(true);
+    }
+}
